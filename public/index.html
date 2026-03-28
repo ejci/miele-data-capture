@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miele Data Capture</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #ffffff;
+        }
+
+        .container {
+            background-color: #8c0014; /* Miele Red */
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(140, 0, 20, 0.4);
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        button {
+            background-color: white;
+            color: #8c0014;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #status {
+            margin-top: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .stats {
+            margin-top: 2rem;
+            text-align: center;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-item {
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .poll-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .poll-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .countdown {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .status-ok {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Pure white tick icon */
+        .tick-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tick-icon svg {
+            fill: white;
+            width: 14px;
+            height: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="login-view">
+        <img src="miele-logo.svg" alt="Miele Logo" width="160" style="margin-bottom: 1rem;">
+        <h1>Miele Data Capture</h1>
+        <p>Please authenticate to start capturing data.</p>
+        <button id="login-btn">Login to Miele</button>
+    </div>
+
+    <div class="container hidden" id="dashboard-view">
+        <img src="miele-logo.svg" alt="Miele Logo" width="140" style="margin-bottom: 1rem;">
+        <h1>Dashboard</h1>
+        <div class="status-ok">
+            <div class="tick-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                </svg>
+            </div>
+            <span>Connected to Miele</span>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Last Synchronization</span> <span id="last-update">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Appliances</span> <span id="device-count">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Connection</span> <span id="auth-status">Checking...</span>
+            </div>
+        </div>
+
+        <div class="poll-card">
+            <h3>Polling Metrics</h3>
+            <div>Interval: <span id="poll-interval">-</span></div>
+            <div class="countdown" id="poll-next">-</div>
+        </div>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('/health');
+                const data = await res.json();
+                if (data.authenticated) {
+                    showDashboard(data);
+                } else {
+                    loginView.classList.remove('hidden');
+                    dashboardView.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Health check failed", e);
+            }
+        }
+
+        function showDashboard(data) {
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+            
+            // Format Last Update
+            let lastUpdateStr = 'Never';
+            if (data.lastPolled) {
+                lastUpdateStr = new Date(data.lastPolled).toLocaleTimeString();
+            }
+            document.getElementById('last-update').textContent = lastUpdateStr;
+            
+            // Devices Count
+            document.getElementById('device-count').textContent = Array.isArray(data.lastData) ? data.lastData.length : 0;
+            
+            // Auth Indicator
+            document.getElementById('auth-status').textContent = 'Live';
+
+            // Polling interval 
+            if (data.pollInterval) {
+                document.getElementById('poll-interval').textContent = `${data.pollInterval} sec`;
+            }
+        }
+
+        loginBtn.addEventListener('click', () => {
+            loginBtn.textContent = 'Redirecting...';
+            loginBtn.disabled = true;
+            window.location.href = '/auth';
+        });
+
+        // Initial check
+        checkStatus();
+        setInterval(checkStatus, 3000);
+    </script>
+</body>
+
+</html>

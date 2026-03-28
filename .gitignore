@@ -1,0 +1,15 @@
+node_modules/
+.env
+token.json
+coverage/
+node_modules/
+npm-debug.log
+package-lock.json
+yarn-error.log
+.DS_Store
+.env
+token.json
+examples.md
+data/token.json
+.vscode
+APP.md

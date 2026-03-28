@@ -12,12 +12,12 @@ const API_BASE_URL = 'https://api.mcs3.miele.com/v1';
 
 let currentTokens = null;
 
-export const generateAuthUrl = () => {
-  const redirectUri = `http://localhost:${config.miele.port}/callback`;
+export const generateAuthUrl = (redirectUri) => {
+  const fallbackUri = `http://localhost:${config.miele.port}/callback`;
   const params = new URLSearchParams({
     client_id: config.miele.clientId,
     response_type: 'code',
-    redirect_uri: redirectUri,
+    redirect_uri: redirectUri || fallbackUri,
     state: 'miele-auth-state', // In a real prod app, use secure random value
     vg: 'de-DE', // Optional: default locale
     scope: 'openid mcs_thirdparty_read'
@@ -60,13 +60,13 @@ export const saveTokens = async (tokens) => {
   }
 };
 
-export const exchangeCodeForTokens = async (code) => {
-  const redirectUri = `http://localhost:${config.miele.port}/callback`;
+export const exchangeCodeForTokens = async (code, redirectUri) => {
+  const fallbackUri = `http://localhost:${config.miele.port}/callback`;
   const params = new URLSearchParams({
     client_id: config.miele.clientId,
     client_secret: config.miele.clientSecret,
     code: code,
-    redirect_uri: redirectUri,
+    redirect_uri: redirectUri || fallbackUri,
     grant_type: 'authorization_code'
   });
 

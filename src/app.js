@@ -64,7 +64,8 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/auth', (req, res) => {
-  const authUrl = generateAuthUrl();
+  const redirectUri = `${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers['x-forwarded-host'] || req.get('host')}/callback`;
+  const authUrl = generateAuthUrl(redirectUri);
   res.redirect(authUrl);
 });
 
@@ -74,8 +75,10 @@ app.get('/callback', async (req, res) => {
     return res.status(400).send('No authorization code provided.');
   }
 
+  const redirectUri = `${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers['x-forwarded-host'] || req.get('host')}/callback`;
+
   try {
-    const tokens = await exchangeCodeForTokens(code);
+    const tokens = await exchangeCodeForTokens(code, redirectUri);
     logger.info('Successfully exchanged code for tokens via web callback.');
     startPollingLoop(); // Start polling since we now have auth
     res.redirect('/');

@@ -35,7 +35,7 @@ export const loadTokens = async () => {
     if (error.code === 'ENOENT') {
       logger.info('No token.json found. User needs to authenticate via web interface.');
     } else {
-      logger.error('Error reading token.json:', error.message);
+      logger.error({ err: error }, 'Error reading token.json');
     }
     return null;
   }
@@ -52,7 +52,7 @@ export const saveTokens = async (tokens) => {
     currentTokens = tokenData;
     logger.info('Tokens saved successfully to token.json');
   } catch (error) {
-    logger.error('Failed to save tokens to token.json:', error.message);
+    logger.error({ err: error }, 'Failed to save tokens to token.json');
   }
 };
 
@@ -73,7 +73,7 @@ export const exchangeCodeForTokens = async (code) => {
     await saveTokens(response.data);
     return response.data;
   } catch (error) {
-    logger.error('Failed to exchange code for tokens:', error.response?.data || error.message);
+    logger.error({ err: error, responseData: error.response?.data }, 'Failed to exchange code for tokens');
     throw error;
   }
 };
@@ -98,7 +98,7 @@ export const refreshTokens = async () => {
     logger.info('Token refreshed successfully');
     return response.data;
   } catch (error) {
-    logger.error('Failed to refresh tokens:', error.response?.data || error.message);
+    logger.error({ err: error, responseData: error.response?.data }, 'Failed to refresh tokens');
     throw error;
   }
 };
@@ -107,7 +107,7 @@ const makeAuthenticatedRequest = async (url) => {
   if (!currentTokens || !currentTokens.access_token) {
     throw new Error('Not authenticated. Please login first.');
   }
-  logger.info(url);
+  logger.debug({ url }, 'Making authenticated request');
   try {
     const response = await axios.get(url, {
       headers: {
@@ -115,10 +115,10 @@ const makeAuthenticatedRequest = async (url) => {
         'Accept': 'application/json'
       }
     });
-    logger.info(response.data);
+    logger.debug({ fetchResult: 'Success', status: response.status }, 'API Response received');
     return response.data;
   } catch (error) {
-    logger.error(error);
+    logger.error({ err: error, url }, 'API Request failed');
     if (error.response && error.response.status === 401) {
       logger.info('Access token expired, attempting refresh...');
       await refreshTokens();
@@ -155,10 +155,10 @@ export const fetchDevices = async () => {
             }
           }
         }
-        logger.info(id, fillingLevels);
+        logger.debug({ appliance_id: id, fillingLevels }, 'Filling levels fetched');
       } catch (err) {
         // If not available, fallback or ignore
-        logger.debug(`Could not fetch filling levels for ${id}: ${err.message}`);
+        logger.debug({ appliance_id: id, err }, 'Could not fetch filling levels');
       }
 
       const status = state.status?.value_raw;
@@ -195,7 +195,7 @@ export const fetchDevices = async () => {
     }
     return result;
   } catch (error) {
-    logger.error('Failed to fetch devices:', error.message);
+    logger.error({ err: error }, 'Failed to fetch devices');
     throw error;
   }
 };

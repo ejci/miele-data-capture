@@ -38,7 +38,7 @@ const startPollingLoop = () => {
       });
       logger.info(`Successfully polled and pushed data for ${devices.length} devices.`);
     } catch (error) {
-      logger.error('Error during polling loop:', error.message);
+      logger.error({ err: error }, 'Error during polling loop');
       pushErrorData('pollingLoop', error.message);
     }
   };
@@ -80,7 +80,7 @@ app.get('/callback', async (req, res) => {
     startPollingLoop(); // Start polling since we now have auth
     res.redirect('/');
   } catch (error) {
-    logger.error('Callback error:', error.message);
+    logger.error({ err: error }, 'Callback error');
     res.status(500).send(`Failed to authenticate: ${error.message}`);
   }
 });

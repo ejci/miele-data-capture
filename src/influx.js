@@ -16,7 +16,7 @@ export const initInflux = () => {
 
 export const pushDeviceData = (deviceData) => {
   if (config.miele.dryRun) {
-    logger.info('Dry Run [Device Data]:', JSON.stringify(deviceData, null, 2));
+    logger.info({ deviceData }, 'Dry Run [Device Data]');
     return;
   }
   
@@ -84,16 +84,16 @@ export const pushDeviceData = (deviceData) => {
 
     writeApi.writePoint(point);
     writeApi.flush();
-    logger.debug(`Data pushed to InfluxDB for ${deviceData.appliance_id}`);
+    logger.debug({ appliance_id: deviceData.appliance_id }, 'Data pushed to InfluxDB');
   } catch (error) {
-    logger.error('Failed to push device data to InfluxDB:', error.message);
+    logger.error({ err: error }, 'Failed to push device data to InfluxDB');
     pushErrorData('pushDeviceData', error.message);
   }
 };
 
 export const pushErrorData = (context, errorMessage) => {
   if (config.miele.dryRun) {
-    logger.error(`Dry Run [Error Data]: Context: ${context}, Message: ${errorMessage}`);
+    logger.error({ errorContext: context, errorMessage }, 'Dry Run [Error Data]');
     return;
   }
   
@@ -108,7 +108,7 @@ export const pushErrorData = (context, errorMessage) => {
     writeApi.writePoint(point);
     writeApi.flush();
   } catch (err) {
-    logger.error('Failed to log error to InfluxDB:', err.message);
+    logger.error({ err }, 'Failed to log error to InfluxDB');
   }
 };
 

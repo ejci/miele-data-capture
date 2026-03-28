@@ -69,7 +69,6 @@ Run the container (make sure you persist `token.json`!):
 ```bash
 docker run -d \
   -p 3000:3000 \
-  -v $(pwd)/token.json:/app/token.json \
   --env-file .env \
   --name miele-data-capture \
   miele-data-capture

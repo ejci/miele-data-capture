@@ -1,0 +1,16 @@
+services:
+  miele-data-capture:
+    build: .
+    ports:
+      - "${MIELE_PORT:-3000}:${MIELE_PORT:-3000}"
+    environment:
+      - MIELE_CLIENT_ID=${MIELE_CLIENT_ID}
+      - MIELE_CLIENT_SECRET=${MIELE_CLIENT_SECRET}
+      - MIELE_PORT=${MIELE_PORT}
+      - MIELE_POLL_INTERVAL=${MIELE_POLL_INTERVAL}
+      - MIELE_DRYRUN=${MIELE_DRYRUN}
+      - MIELE_INFLUX_URL=${MIELE_INFLUX_URL}
+      - MIELE_INFLUX_TOKEN=${MIELE_INFLUX_TOKEN}
+      - MIELE_INFLUX_ORG=${MIELE_INFLUX_ORG}
+      - MIELE_INFLUX_BUCKET=${MIELE_INFLUX_BUCKET}
+    restart: always

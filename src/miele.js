@@ -28,6 +28,10 @@ export const generateAuthUrl = () => {
 export const loadTokens = async () => {
   try {
     const data = await fs.readFile(TOKEN_FILE_PATH, 'utf-8');
+    if (!data || !data.trim()) {
+      logger.info('token.json is empty. User needs to authenticate via web interface.');
+      return null;
+    }
     currentTokens = JSON.parse(data);
     logger.info('Tokens loaded from token.json');
     return currentTokens;

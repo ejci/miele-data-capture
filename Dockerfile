@@ -9,6 +9,7 @@ RUN npm install --omit=dev
 # Copy application code
 COPY src ./src
 COPY public ./public
+RUN mkdir -p data
 
 # Expose the configured port
 EXPOSE 3000

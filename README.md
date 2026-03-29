@@ -46,7 +46,7 @@ npm start
 
 Then navigate to `http://localhost:3000` to authorize the application. Once authorized, it will start polling the Miele API and saving the data.
 
-The tokens are saved securely to `token.json` in the root directory.
+The tokens are saved securely to `data/token.json`.
 
 
 This ensures that the server runs strictly attached to your active terminal on `http://localhost:<MIELE_PORT>` for immediate log inspection.
@@ -65,12 +65,13 @@ Build the container:
 docker build -t miele-data-capture .
 ```
 
-Run the container (make sure you persist `token.json`!):
+Run the container (make sure you persist the `data/` folder!):
 ```bash
 docker run -d \
   -p 3000:3000 \
   --env-file .env \
   --name miele-data-capture \
+  -v $(pwd)/data:/app/data \
   miele-data-capture
 ```
-If you start the container and `token.json` is missing/empty, just go to `http://<your_server_ip>:3000/` and click the authorization link to authenticate.
+If you start the container and `data/token.json` is missing/empty, just go to `http://<your_server_ip>:3000/` and click the authorization link to authenticate.

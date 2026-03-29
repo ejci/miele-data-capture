@@ -14,3 +14,5 @@ services:
       - MIELE_INFLUX_ORG=${MIELE_INFLUX_ORG}
       - MIELE_INFLUX_BUCKET=${MIELE_INFLUX_BUCKET}
     restart: always
+    volumes:
+      - ./data:/app/data

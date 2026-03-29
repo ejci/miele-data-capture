@@ -4,7 +4,7 @@ import axios from 'axios';
 import { config } from './config.js';
 import { logger } from './logger.js';
 
-const TOKEN_FILE_PATH = path.resolve(process.cwd(), 'token.json');
+const TOKEN_FILE_PATH = path.resolve(process.cwd(), 'data', 'token.json');
 
 const OAUTH_AUTH_URL = 'https://auth.domestic.miele-iot.com/partner/realms/mcs/protocol/openid-connect/auth';
 const OAUTH_TOKEN_URL = 'https://auth.domestic.miele-iot.com/partner/realms/mcs/protocol/openid-connect/token';
@@ -29,17 +29,17 @@ export const loadTokens = async () => {
   try {
     const data = await fs.readFile(TOKEN_FILE_PATH, 'utf-8');
     if (!data || !data.trim()) {
-      logger.info('token.json is empty. User needs to authenticate via web interface.');
+      logger.info('data/token.json is empty. User needs to authenticate via web interface.');
       return null;
     }
     currentTokens = JSON.parse(data);
-    logger.info('Tokens loaded from token.json');
+    logger.info('Tokens loaded from data/token.json');
     return currentTokens;
   } catch (error) {
     if (error.code === 'ENOENT') {
-      logger.info('No token.json found. User needs to authenticate via web interface.');
+      logger.info('No data/token.json found. User needs to authenticate via web interface.');
     } else {
-      logger.error({ err: error }, 'Error reading token.json');
+      logger.error({ err: error }, 'Error reading data/token.json');
     }
     return null;
   }
@@ -54,9 +54,9 @@ export const saveTokens = async (tokens) => {
     };
     await fs.writeFile(TOKEN_FILE_PATH, JSON.stringify(tokenData, null, 2), 'utf-8');
     currentTokens = tokenData;
-    logger.info('Tokens saved successfully to token.json');
+    logger.info('Tokens saved successfully to data/token.json');
   } catch (error) {
-    logger.error({ err: error }, 'Failed to save tokens to token.json');
+    logger.error({ err: error }, 'Failed to save tokens to data/token.json');
   }
 };
 
